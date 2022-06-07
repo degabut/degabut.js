@@ -1,3 +1,4 @@
+import { PlaylistVideoModel } from "@modules/playlist/repositories/PlaylistVideoRepository/PlaylistVideoModel";
 import { UserPlayHistoryModel } from "@modules/user/repositories/UserPlayHistoryRepository/UserPlayHistoryModel";
 import { VideoCompact } from "@modules/youtube/entities/VideoCompact";
 import { Knex } from "knex";
@@ -49,6 +50,16 @@ export class VideoRepository {
 				if (to) builder.where("played_at", "<=", to);
 				if (count) builder.limit(count);
 			});
+
+		return results.map((r) => VideoRepositoryMapper.toDomainEntity(r.video as VideoModel));
+	}
+
+	public async getPlaylistVideos(playlistId: string): Promise<VideoCompact[]> {
+		const results = await PlaylistVideoModel.query()
+			.select("video_id")
+			.where({ playlist_id: playlistId })
+			.withGraphFetched("video")
+			.withGraphFetched("video.channel");
 
 		return results.map((r) => VideoRepositoryMapper.toDomainEntity(r.video as VideoModel));
 	}
